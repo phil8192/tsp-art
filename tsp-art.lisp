@@ -1,3 +1,6 @@
+;; (ql:quickload "png-read")
+;; (ql:quickload "zpng")
+
 ;; constants for dithering error diffusion filter
 (defconstant +diffusion-e+  7/16 "east pixel")
 (defconstant +diffusion-sw+ 3/16 "south west pixel") 
@@ -154,3 +157,44 @@ y = (0.2126*r) + (0.7152*g) + (0.0722*b)"
 	 (dithered-img (floyd-steinberg-dithering b&w-img)))
     (save-png dithered-img :file-location "~/lenna-out.png")))
   
+
+;;________________ tsp.___________________________________________
+
+(defun line-to-point (line)
+  (with-input-from-string (s line)
+    (loop
+       :for num := (read s nil nil)
+       :while num
+       :collect num)))
+
+(let ((in (open "~/basic.points")))
+  (loop for line = (read-line in nil)
+     while line do (line-to-point line))
+  (close in))
+
+(defclass point ()
+  ((x
+    :initarg :x
+    :initform (error "need x.")
+    :reader x)
+   (y
+    :initarg :y
+    :initform (error "need y.")
+    :reader y)))
+
+(defclass city(point)
+  ((active
+    :initarg :active
+    :initform t
+    :accessor active-p
+    :documentation "dont-look-bit: if set, the city's adjacent edges
+before and after, will not be considered when searching for a 2-opt move.")))
+
+(defun distance-unsquared (p1 p2)
+  (let ((dx (- (x p1) (x p2)))
+	(dy (- (y p1) (y p2))))
+    (+ (* dx dx) (* dy dy)))) 
+
+(defun distance (p1 p2)
+  (sqrt (distance-unsquared p1 p2)))
+
