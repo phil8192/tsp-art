@@ -185,6 +185,13 @@ before and after, will not be considered when searching for a 2-opt move.")))
   "euclidean distance."
   (sqrt (distance-squared p1 p2)))
 
+(defun tour-distance (points)
+  (let ((tour-length (length points)))
+    (do ((i 1 (1+ i))
+	 (d 0 (+ d (distance (aref points (1- i)) (aref points i)))))
+	((= i tour-length)
+	 (+ d (distance (aref points (1- tour-length)) (aref points 0)))))))
+
 (defun line-to-point (line)
   "given a string of the form X Y create an instance of city." 
   (let ((coordinates 
@@ -257,4 +264,25 @@ iterated in order, represents a tour."
 	 (try-move points current-idx i current-point next-point c d)
 	 0)))))
 	
-	
+(defun optimise (points)
+  (let ((best (tour-distance points))
+	(num-cities (length points))
+	(visited 0)
+	(current 0))
+    (do ()
+	((= visited num-cities) best)
+      (let ((current-point (aref points current)))
+	(if (active-p current-point)
+	    (let ((modified (find-move current current-point points num-cities)))
+	      (if (< modified 0)
+		  (progn
+		    (setf current (wrap (1- current) num-cities))
+		    (setf visited 0)
+		    (incf best modified))
+		  (progn
+		    (setf (active-p current-point) nil)
+		    (setf current (wrap (1+ current) num-cities))
+		    (incf visited))))
+	    (progn
+	      (setf current (wrap (1+ current) num-cities))
+	      (incf visited)))))))
