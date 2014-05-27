@@ -160,18 +160,6 @@ y = (0.2126*r) + (0.7152*g) + (0.0722*b)"
 
 ;;________________ tsp.___________________________________________
 
-(defun line-to-point (line)
-  (with-input-from-string (s line)
-    (loop
-       :for num := (read s nil nil)
-       :while num
-       :collect num)))
-
-(let ((in (open "~/basic.points")))
-  (loop for line = (read-line in nil)
-     while line do (line-to-point line))
-  (close in))
-
 (defclass point ()
   ((x
     :initarg :x
@@ -190,11 +178,40 @@ y = (0.2126*r) + (0.7152*g) + (0.0722*b)"
     :documentation "dont-look-bit: if set, the city's adjacent edges
 before and after, will not be considered when searching for a 2-opt move.")))
 
-(defun distance-unsquared (p1 p2)
+(defun distance-squared (p1 p2)
+  "for comparing 2 edges."
   (let ((dx (- (x p1) (x p2)))
 	(dy (- (y p1) (y p2))))
     (+ (* dx dx) (* dy dy)))) 
 
 (defun distance (p1 p2)
-  (sqrt (distance-unsquared p1 p2)))
+  "euclidean distance."
+  (sqrt (distance-squared p1 p2)))
+
+(defun line-to-point (line)
+  "given a string of the form X Y create an instance of city." 
+  (let ((coordinates 
+	 (with-input-from-string (s line)
+	   (loop
+	      :for num := (read s nil nil)
+	      :while num
+	      :collect num))))
+    (make-instance 'city
+		   :x (first coordinates)
+		   :y (second coordinates))))
+
+(defun load-points (file-location)
+  "load points from a file into a vector. this vector, when
+iterated in order, represents a tour."
+  (let ((in (open file-location))
+	(result nil))
+    (loop for line = (read-line in nil)
+       while line do 
+	 (push (line-to-point line) result))
+    (close in)
+    (make-array (length result)
+		:initial-contents (nreverse result)
+		:element-type 'city)))
+
+
 
