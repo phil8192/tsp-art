@@ -1,5 +1,7 @@
 ;; (ql:quickload "png-read")
 ;; (ql:quickload "zpng")
+;; (proclaim '(optimize (debug 3)))
+(proclaim '(optimize (speed 3) (debug 0)))
 
 ;; constants for dithering error diffusion filter
 (defconstant +diffusion-e+  7/16 "east pixel")
@@ -207,7 +209,8 @@ before and after, will not be considered when searching for a 2-opt move.")))
 (defun load-points (file-location)
   "load points from a file into a vector. this vector, when
 iterated in order, represents a tour."
-  (let ((in (open file-location))
+  (let ((*read-default-float-format* 'double-float) 
+       (in (open file-location))
 	(result nil))
     (loop for line = (read-line in nil)
        while line do 
@@ -233,8 +236,8 @@ iterated in order, represents a tour."
 	(ac (distance-squared a c)) (bd (distance-squared b d)))
     (if (and (< ab ac) (< cd bd))
 	1
-	(+ (sqrt ab) (sqrt cd)
-	   (sqrt ac) (sqrt bd)))))
+	(- (+ (sqrt ac) (sqrt bd))
+	   (+ (sqrt ab) (sqrt cd))))))
 
 (defun activate (a b c d)
   (setf (active-p a) t) (setf (active-p b) t)
@@ -245,7 +248,8 @@ iterated in order, represents a tour."
     (if (< delta 0)
 	(progn 
 	  (activate a b c d)
-	  (reverse-subseq points (1+ (min from to)) (max from to)))
+	  (reverse-subseq points (1+ (min from to)) (max from to))
+	  delta)
 	nil)))
 
 (defun find-move (current-idx current-point
@@ -256,14 +260,16 @@ iterated in order, represents a tour."
 	 (next-point (aref points next)))
     (do ((i (wrap (+ current-idx 2) num-cities) j)
 	 (j (wrap (+ current-idx 3) num-cities) (wrap (1+ j) num-cities)))
-	((= j current-idx))
-      (let ((c (aref points i))
-	    (d (aref points j)))
-	(or 
-	 (try-move points prev i prev-point current-point c d)
-	 (try-move points current-idx i current-point next-point c d)
-	 0)))))
-	
+	((= j current-idx) 0)
+      (let* ((c (aref points i))
+	     (d (aref points j))
+	     (delta (or 
+		     (try-move points prev i prev-point current-point c d)
+		     (try-move points current-idx i current-point next-point c d))))
+	(if delta
+	    (return-from find-move delta))))))
+
+;; nasty.	
 (defun optimise (points)
   (let ((best (tour-distance points))
 	(num-cities (length points))
@@ -286,3 +292,8 @@ iterated in order, represents a tour."
 	    (progn
 	      (setf current (wrap (1+ current) num-cities))
 	      (incf visited)))))))
+
+(defun test-optimise ()
+  (let ((tour-array (load-points "~/greece.points")))
+    (format t "starting distance = ~4$~%" (tour-distance tour-array))
+    (format t "optimised distance = ~4$~%" (optimise tour-array))))
