@@ -271,6 +271,9 @@ iterated in order, represents a tour."
 
 ;; nasty.	
 (defun optimise (points)
+
+  (declare (optimize (speed 3) (debug 0) (safety 0)))
+
   (let ((best (tour-distance points))
 	(num-cities (length points))
 	(visited 0)
