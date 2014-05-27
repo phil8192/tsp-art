@@ -30,7 +30,6 @@ has an alpha channel or not."
 		    :image-data (flat-array image-array))
      stream)))
   
-
 (defun component-fun (image-array)
   "this function evaluates to a lambda expression which takes as an argument
 an r g b or greyscale value (components). if there is an alpha component 
@@ -120,7 +119,6 @@ y = (0.2126*r) + (0.7152*g) + (0.0722*b)"
 	    (setf (aref image-array i j) new-pixel)
 	    (setf (aref quant-errors current-errors j) 0.0d0)))))))
 
-
 ;;_________________auxiliary functions____________________________
 
 (defun flat-array (array)
@@ -157,7 +155,6 @@ y = (0.2126*r) + (0.7152*g) + (0.0722*b)"
 	 (dithered-img (floyd-steinberg-dithering b&w-img)))
     (save-png dithered-img :file-location "~/lenna-out.png")))
   
-
 ;;________________ tsp.___________________________________________
 
 (defclass point ()
@@ -210,8 +207,54 @@ iterated in order, represents a tour."
 	 (push (line-to-point line) result))
     (close in)
     (make-array (length result)
-		:initial-contents (nreverse result)
+		:initial-contents (reverse result)
 		:element-type 'city)))
 
+(defun reverse-subseq (array from to)
+  (do ((i from (1+ i))
+       (j to (1- j)))
+      ((>= i j))
+    (let ((tmp (aref array i)))
+      (setf (aref array i) (aref array j))
+      (setf (aref array j) tmp))))
 
+(defun wrap (i max)
+  (mod (+ i max) max))
 
+(defun move-cost (a b c d)
+  (let ((ab (distance-squared a b)) (cd (distance-squared c d))
+	(ac (distance-squared a c)) (bd (distance-squared b d)))
+    (if (and (< ab ac) (< cd bd))
+	1
+	(+ (sqrt ab) (sqrt cd)
+	   (sqrt ac) (sqrt bd)))))
+
+(defun activate (a b c d)
+  (setf (active-p a) t) (setf (active-p b) t)
+  (setf (active-p c) t) (setf (active-p d) t))
+
+(defun try-move (points from to a b c d)
+  (let ((delta (move-cost a b c d)))
+    (if (< delta 0)
+	(progn 
+	  (activate a b c d)
+	  (reverse-subseq points (1+ (min from to)) (max from to)))
+	nil)))
+
+(defun find-move (current-idx current-point
+		  points num-cities)
+  (let* ((prev (wrap (1- current-idx) num-cities))
+	 (next (wrap (1+ current-idx) num-cities))
+	 (prev-point (aref points prev))
+	 (next-point (aref points next)))
+    (do ((i (wrap (+ current-idx 2) num-cities) j)
+	 (j (wrap (+ current-idx 3) num-cities) (wrap (1+ j) num-cities)))
+	((= j current-idx))
+      (let ((c (aref points i))
+	    (d (aref points j)))
+	(or 
+	 (try-move points prev i prev-point current-point c d)
+	 (try-move points current-idx i current-point next-point c d)
+	 0)))))
+	
+	
