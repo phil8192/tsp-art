@@ -7,5 +7,4 @@ Alphonse Mucha, Poetry
 Alphonse Mucha, Le Pater
 ![alt tag](https://raw.githubusercontent.com/phil8192/tsp-art/master/le-pater-tsp.png)
 
-An [Animation](http://youtu.be/glREE0ibFKM) of the 2-opt algorithm.
-
+An [Animation](http://youtu.be/glREE0ibFKM) of the 2-opt algorithm. and [here](http://youtu.be/psAx4Fp6mJs).
