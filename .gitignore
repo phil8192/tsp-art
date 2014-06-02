@@ -1,3 +1,5 @@
 *~
 *.fasl
 notes.lisp
+dithering.lisp
+two-opt.lisp
