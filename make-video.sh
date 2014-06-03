@@ -31,9 +31,9 @@ for((i=1,j=0;;i++,j++)) ;do
   fi
   outname="/tmp/img"$(printf %03d $j)".png"
   echo $filename "->" $outname "..."
-  ./generate-image.sh $filename $outname 800 1120 0.5 "#000000" "#ff0000"
+  ./generate-image.sh $filename $outname 800 1120 1 "#ffffff" "#000000"
 done
 
 # make video
-/home/phil/ffmpeg/ffmpeg/ffmpeg -r 25 -i /tmp/img%03d.png -vcodec libx264 -bf 0 -crf 16 -threads 0 -b 5000 tsp.mp4
+/home/phil/ffmpeg/ffmpeg/ffmpeg -r 25 -i /tmp/img%03d.png -vcodec libx264 -bf 0 -crf 16 -threads 0 -b 5000 white.mp4 
 

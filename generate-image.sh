@@ -9,7 +9,7 @@ gnuplot -e "unset border; unset xtics; unset ytics;
             set label ''; set key off; 
             set obj 1 rectangle behind from screen 0,0 to screen 1,1; 
             set obj 1 fillstyle solid 1 fillcolor rgbcolor '$6'; 
-            plot '$1' using 1:2 with lines lw $5 lc rgb '$7', '$1' using 1:2 with dots lc 3"
+            plot '$1' using 1:2 with lines lw $5 lc rgb '$7'"
 
 convert $2 -rotate 90 $2
 
